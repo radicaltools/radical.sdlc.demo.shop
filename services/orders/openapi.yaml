@@ -71,16 +71,17 @@ paths:
         - { name: id, in: path, required: true, schema: { type: string } }
       responses:
         '200':
-          description: The tracking number, the carrier's status of the delivery and its estimated delivery date
+          description: The tracking number, the carrier's status of the delivery, its estimated delivery date and its delivery time
           content:
             application/json:
               schema:
                 type: object
-                required: [trackingNumber, status, estimatedDeliveryDate]
+                required: [trackingNumber, status, estimatedDeliveryDate, deliveredAt]
                 properties:
                   trackingNumber: { type: string }
                   status: { type: string, enum: [in-transit, delivered, lost] }
                   estimatedDeliveryDate: { type: [string, 'null'], format: date, description: "The date the carrier gave when it booked the parcel, as it gave it; null when it gave none" }
+                  deliveredAt: { type: [string, 'null'], format: date-time, description: "The date and time the carrier reports the parcel was delivered, as it gave it, like 2026-11-21T10:30:00Z; null when the status is not delivered or the carrier gave no time for a delivered one" }
         '404': { description: No such order }
         '409': { description: The order has not shipped; the Warehouse is not asked }
         '503': { description: The Warehouse cannot give the carrier status now; the order stays as it is }

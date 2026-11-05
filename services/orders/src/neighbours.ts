@@ -72,12 +72,13 @@ export function neighboursAt(urls: Urls): Neighbours {
         throw new WarehouseDown((error as Error).message)
       }
       if (!response.ok) throw new WarehouseDown(`Dispatch answered ${response.status}`)
-      const { trackingNumber, status, estimatedDeliveryDate } = (await response.json()) as {
+      const { trackingNumber, status, estimatedDeliveryDate, deliveredAt } = (await response.json()) as {
         trackingNumber: string
         status: CarrierStatus
         estimatedDeliveryDate?: string | null
+        deliveredAt?: string | null
       }
-      return { trackingNumber, status, estimatedDeliveryDate: estimatedDeliveryDate ?? null }
+      return { trackingNumber, status, estimatedDeliveryDate: estimatedDeliveryDate ?? null, deliveredAt: deliveredAt ?? null }
     },
   }
 }
