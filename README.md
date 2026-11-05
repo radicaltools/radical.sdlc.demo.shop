@@ -11,18 +11,22 @@ and says how it all fits together. This repository holds code, and two files abo
 tools/model.mjs           fetches the model into .radical/model, out of git
 ```
 
-## The Warehouse
+## How it works with the Warehouse
 
 ![A client pays an order. The orders service of the Shop reserves its lines in the Warehouse, and marks it paid once they are held; if they are short or the Warehouse does not answer, it stays placed. When the order is shipped, the Warehouse books the carrier and the Shop keeps the tracking number; if the carrier is down, it stays paid.](docs/order-across.svg)
 
 Each lane is who does the step. A red arrow is a refusal, and the order stays as it was.
 
+Tickets go to [the architecture repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#how-a-change-gets-through),
+never here. When this repository's part of the model is not built, the coding agent proposes the code in a pull
+request, and the Gate decides. When a change crosses both repositories, the Warehouse goes first, because this one calls it.
+
 Paying an order reserves its goods in the [Warehouse](https://github.com/radicaltools/radical.tools.sdlc.demo.3.warehouse)
 in the same request (ADR *Payment waits for stock*), and shipping it has the Warehouse book the carrier. Two things
 keep the two repositories honest with each other:
 
-- **The model.** One model holds both, with the relation from the orders service to the stock service, and it orders the
-  work: the Warehouse builds first.
+- **The model.** One model holds both, with the relations from the orders service to the Warehouse's services, and it
+  orders the work.
 - **The contract.** The sensor `warehouse-contract` reads the Warehouse's OpenAPI descriptions on its main branch and fails
   a pull request whose call they do not describe.
 
@@ -30,7 +34,7 @@ Tests and `npm run stack` use a stand-in for the Warehouse, so a pull request he
 
 ## Left in on purpose
 
-Open findings from demo.1, in `.radical/crucible/findings`, wait for the coding agent:
+Open findings from the earlier demos, in `.radical/crucible/findings`, wait for the coding agent:
 *a discount code named `constructor` is accepted*, *paying, shipping or cancelling an unknown order answers 500*, and more.
 
 ## Run it on your machine
@@ -43,4 +47,3 @@ npm run stack            # the services on :3001 to :3003, with a stand-in for t
 ```
 
 The whole model opens in [Radical Studio](https://radical.tools) from the architecture repository.
-`npm run hooks` keeps the other models and the test results of CI up to date.
