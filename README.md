@@ -17,6 +17,9 @@ tools/model.mjs           fetches the model into .radical/model, out of git
 
 Each lane is who does the step. A red arrow is a refusal, and the order stays as it was.
 
+`GET /orders/{id}/tracking` answers a shipped order's tracking number, the carrier's status and the estimated delivery
+date, all read from the Warehouse. The date is null when the carrier gave none.
+
 Tickets go to [the architecture repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#how-a-change-gets-through),
 never here. When this repository's part of the model is not built, the coding agent proposes the code in a pull
 request, and the Gate decides. When a change crosses both repositories, the Warehouse goes first, because this one calls it.
@@ -32,9 +35,13 @@ keep the two repositories honest with each other:
 
 Tests and `npm run stack` use a stand-in for the Warehouse, so a pull request here does not need it running.
 
-## Left in on purpose
+## Built from the model
 
-Open findings from the earlier demos, in `.radical/crucible/findings`, wait for the coding agent:
+[The pull request](https://github.com/radicaltools/radical.tools.sdlc.demo.3.shop/pull/1) that added the estimated delivery date came from the coding agent, with no ticket here.
+The loop started it when the Warehouse's code was merged, so what it needed was already there. It read what changed in
+the model, built this repository's part, and left the Warehouse's part alone.
+
+Open findings wait in `.radical/crucible/findings`:
 *a discount code named `constructor` is accepted*, *paying, shipping or cancelling an unknown order answers 500*, and more.
 
 ## Run it on your machine
