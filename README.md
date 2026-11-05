@@ -28,20 +28,24 @@ keep the two repositories honest with each other:
   orders the work.
 - **The contract.** The sensor `warehouse-contract` reads the Warehouse's OpenAPI descriptions on its main branch and fails
   a pull request whose call they do not describe.
-- **The test of the two together.** The sensor `crosses` runs this repository's code with the Warehouse's main branch and
+- **The test of the two together.** The sensor `crosses` runs this repository's code with the Warehouse's code on the same
+  change's branch, or else its main branch, and
   fails a pull request on a call or a field the two sides do not agree on. It starts everything itself.
 
 The tests in `tests/` and `npm run stack` use a stand-in for the Warehouse.
 
 ## How a change gets here
 
-![A person opens a ticket. The model agent changes the model of the whole system in one pull request. A green Gate and a person's merge start the system loop, which reads what each repository has left and starts the Warehouse first, because the Shop calls it. Its coding agent builds its part, a green Gate and a merge start the loop again, and it starts the Shop. When nothing is left, the loop closes the ticket.](https://raw.githubusercontent.com/radicaltools/radical.tools.sdlc.demo.3.architecture/main/docs/sdlc.svg)
+![A person opens a ticket. The model agent models the change of the whole system on a branch, says on the ticket what it understood, and a review agent reads the change against the ticket. After a green Gate the system loop starts the Warehouse first, because the Shop calls it, then the Shop, each building on the same branch. A coding agent's question goes to the model agent, who answers in the model, and the loop builds again. When every Gate is green, the evidence goes on the ticket, a person accepts it all at once, and the loop merges the model first, then the code.](https://raw.githubusercontent.com/radicaltools/radical.tools.sdlc.demo.3.architecture/main/docs/sdlc.svg)
 
-Yellow is a person, violet an agent on Claude Code, and green has no AI and gives the same answer every time. The dark box is the Gate, the one required check.
+Yellow is a person, violet an agent on Claude Code, and green has no AI and gives the same answer every time. The dark boxes are the Gates, the one required check of each repository.
 
 Tickets go to [the architecture repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#how-a-change-gets-through),
-never here. When this repository's part of the model is not built, the coding agent proposes the code in a pull
-request, and the Gate decides. When a change crosses both repositories, the Warehouse goes first, because this one calls it.
+never here. A change lives on the branch `change/<n>` of its ticket, in the architecture repository and in each
+repository it touches. When this repository's part of the model on that branch is not built, its coding agent builds
+it there, in a draft pull request with the proof of its tests, and the Gate decides. When a change crosses both
+repositories, the Warehouse goes first, because this one calls it. Nobody merges here by hand: a person accepts the whole change on its ticket, and the
+loop merges every pull request of it.
 
 ## Built from the model
 
