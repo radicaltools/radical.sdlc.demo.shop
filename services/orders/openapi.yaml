@@ -66,20 +66,21 @@ paths:
         '503': { description: The Warehouse cannot put the goods back now; the order stays shipped }
   /orders/{id}/tracking:
     get:
-      summary: Reads the tracking number of a shipped order and the carrier's status of its delivery, from the Warehouse; changes nothing
+      summary: Reads the tracking number of a shipped order, the carrier's status of its delivery and its estimated delivery date, from the Warehouse; changes nothing
       parameters:
         - { name: id, in: path, required: true, schema: { type: string } }
       responses:
         '200':
-          description: The tracking number and the carrier's status of the delivery
+          description: The tracking number, the carrier's status of the delivery and its estimated delivery date
           content:
             application/json:
               schema:
                 type: object
-                required: [trackingNumber, status]
+                required: [trackingNumber, status, estimatedDeliveryDate]
                 properties:
                   trackingNumber: { type: string }
                   status: { type: string, enum: [in-transit, delivered, lost] }
+                  estimatedDeliveryDate: { type: [string, 'null'], format: date, description: "The date the carrier gave when it booked the parcel, as it gave it; null when it gave none" }
         '404': { description: No such order }
         '409': { description: The order has not shipped; the Warehouse is not asked }
         '503': { description: The Warehouse cannot give the carrier status now; the order stays as it is }

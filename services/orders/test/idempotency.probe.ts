@@ -16,7 +16,7 @@ export const probes = [{
       reserve: async () => `r-${++reserved}`,
       dispatch: async () => 'T-1',
       return: async () => {},
-      carrierStatus: async () => ({ trackingNumber: 'T-1', status: 'in-transit' }),
+      carrierStatus: async () => ({ trackingNumber: 'T-1', status: 'in-transit', estimatedDeliveryDate: null }),
     }, book)
     return {
       app,

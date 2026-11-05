@@ -21,8 +21,9 @@ export interface OrderEvent { id: string; type: OrderEventType; orderId: string 
 
 /** The carrier's status of a delivery, as the Warehouse answers it on GET /dispatches/{reservationId}. */
 export type CarrierStatus = 'in-transit' | 'delivered' | 'lost'
-/** GET /orders/{id}/tracking on the orders service: the tracking number the order was given, and the carrier's status of its delivery. */
-export interface Tracking { trackingNumber: string; status: CarrierStatus }
+/** GET /orders/{id}/tracking on the orders service: the tracking number the order was given, the carrier's status of its delivery,
+ *  and its estimated delivery date as the carrier gave it (YYYY-MM-DD), or null when the carrier gave none. */
+export interface Tracking { trackingNumber: string; status: CarrierStatus; estimatedDeliveryDate: string | null }
 
 export interface Notification { eventId: string; orderId: string; text: string }
 

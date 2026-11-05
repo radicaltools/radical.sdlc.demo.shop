@@ -114,6 +114,9 @@
     ] },
     { "element": "e2e737e1-f4af-4d07-874b-e1776f80302c", "name": "Unshipped tracking refused", "tests": [
       "services/orders/test/orders.test.ts › orders › refuses the tracking of an order not shipped"
+    ] },
+    { "element": "e89b4e32-1b49-4519-911a-c3c5dbcddb26", "name": "Tracking without a date", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers the tracking of a shipped order without a date"
     ] }
   ]
 }

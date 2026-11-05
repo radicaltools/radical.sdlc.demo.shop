@@ -81,7 +81,7 @@ const suite: FuzzSuite<Action, null, Run> = {
       reserve: async (orderId) => `r-${orderId}`,
       dispatch: async (orderId) => `T-${orderId}`,
       return: async () => {},
-      carrierStatus: async (reservationId) => ({ trackingNumber: `T-${reservationId}`, status: 'in-transit' }),
+      carrierStatus: async (reservationId) => ({ trackingNumber: `T-${reservationId}`, status: 'in-transit', estimatedDeliveryDate: null }),
     })
     return { orders: app, told, priced, known: [] }
   },
