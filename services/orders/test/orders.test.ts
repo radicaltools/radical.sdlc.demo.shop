@@ -23,7 +23,7 @@ function shop(overrides: Partial<Neighbours> = {}) {
     reserve: async (key, reserved) => { reservations.push({ key, lines: reserved }); return `r-${reservations.length}` },
     dispatch: async () => 'T-1',
     return: async (key, reservationId) => { returns.push({ key, reservationId }) },
-    carrierStatus: async () => ({ trackingNumber: 'T-1', status: 'in-transit' }),
+    carrierStatus: async () => ({ trackingNumber: 'T-1', status: 'in-transit', estimatedDeliveryDate: null }),
     ...overrides,
   }, book, () => clock.now)
   const post = (url: string, payload?: object) => app.inject({ method: 'POST', url, payload })
@@ -178,14 +178,25 @@ describe('orders', () => {
     expect((await post(`/orders/${id}/ship`)).json().status).toBe('shipped')
   })
   it('answers the tracking of a shipped order', async () => {
-    const carrierStatus = async () => ({ trackingNumber: 'TRK-7', status: 'in-transit' as const })
+    const carrierStatus = async () => ({ trackingNumber: 'TRK-7', status: 'in-transit' as const, estimatedDeliveryDate: '2026-11-20' })
     const { app, post, book, placed } = shop({ dispatch: async () => 'TRK-7', carrierStatus })
     const id = await placed()
     await post(`/orders/${id}/pay`)
     await post(`/orders/${id}/ship`)
     const response = await app.inject({ method: 'GET', url: `/orders/${id}/tracking` })
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toEqual({ trackingNumber: 'TRK-7', status: 'in-transit' })
+    expect(response.json()).toEqual({ trackingNumber: 'TRK-7', status: 'in-transit', estimatedDeliveryDate: '2026-11-20' })
+    expect(book.get(id)?.status).toBe('shipped')
+  })
+  it('answers the tracking of a shipped order without a date', async () => {
+    const carrierStatus = async () => ({ trackingNumber: 'TRK-8', status: 'in-transit' as const, estimatedDeliveryDate: null })
+    const { app, post, book, placed } = shop({ dispatch: async () => 'TRK-8', carrierStatus })
+    const id = await placed()
+    await post(`/orders/${id}/pay`)
+    await post(`/orders/${id}/ship`)
+    const response = await app.inject({ method: 'GET', url: `/orders/${id}/tracking` })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({ trackingNumber: 'TRK-8', status: 'in-transit', estimatedDeliveryDate: null })
     expect(book.get(id)?.status).toBe('shipped')
   })
   it('answers 503 to the tracking when the warehouse does not answer', async () => {

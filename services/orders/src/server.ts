@@ -58,8 +58,8 @@ export function buildServer(neighbours: Neighbours, book = new OrderBook(), now:
       return reply.code(409).send({ error: `A ${order.status} order has not shipped` })
     }
     try {
-      const { status } = await neighbours.carrierStatus(order.reservationId!)
-      const tracking: Tracking = { trackingNumber: order.trackingNumber!, status }
+      const { status, estimatedDeliveryDate } = await neighbours.carrierStatus(order.reservationId!)
+      const tracking: Tracking = { trackingNumber: order.trackingNumber!, status, estimatedDeliveryDate }
       return tracking
     } catch (error) {
       if (error instanceof WarehouseDown) return reply.code(503).send({ error: 'The carrier status is not available' })
