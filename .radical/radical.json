@@ -117,6 +117,12 @@
     ] },
     { "element": "e89b4e32-1b49-4519-911a-c3c5dbcddb26", "name": "Tracking without a date", "tests": [
       "services/orders/test/orders.test.ts › orders › answers the tracking of a shipped order without a date"
+    ] },
+    { "element": "2a07dd6c-0226-4db7-b569-5a95b37ce863", "name": "Tracking of a delivered order", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers the tracking of a delivered order"
+    ] },
+    { "element": "a7967cd9-5d87-4410-ae61-f97c4a3cf64f", "name": "Delivered without a time", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers the tracking of a delivered order without a time"
     ] }
   ]
 }

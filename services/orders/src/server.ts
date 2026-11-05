@@ -20,8 +20,8 @@ export interface Neighbours {
   /** Puts the goods of the reservation back on the shelves, with the order's id as the
    *  idempotency key. Throws WarehouseDown. */
   return(orderId: string, reservationId: string): Promise<void>
-  /** Reads the tracking number and the carrier's status of a dispatched reservation; changes nothing.
-   *  Throws WarehouseDown when the Warehouse does not answer that, a 404 included. */
+  /** Reads the tracking number, the carrier's status, the estimated delivery date and the delivery time of a
+   *  dispatched reservation; changes nothing. Throws WarehouseDown when the Warehouse does not answer that, a 404 included. */
   carrierStatus(reservationId: string): Promise<Tracking>
 }
 
@@ -58,8 +58,14 @@ export function buildServer(neighbours: Neighbours, book = new OrderBook(), now:
       return reply.code(409).send({ error: `A ${order.status} order has not shipped` })
     }
     try {
-      const { status, estimatedDeliveryDate } = await neighbours.carrierStatus(order.reservationId!)
-      const tracking: Tracking = { trackingNumber: order.trackingNumber!, status, estimatedDeliveryDate }
+      const { status, estimatedDeliveryDate, deliveredAt } = await neighbours.carrierStatus(order.reservationId!)
+      // A time of delivery only means something once the parcel is delivered.
+      const tracking: Tracking = {
+        trackingNumber: order.trackingNumber!,
+        status,
+        estimatedDeliveryDate,
+        deliveredAt: status === 'delivered' ? deliveredAt : null,
+      }
       return tracking
     } catch (error) {
       if (error instanceof WarehouseDown) return reply.code(503).send({ error: 'The carrier status is not available' })
