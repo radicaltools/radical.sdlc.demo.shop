@@ -1,0 +1,29 @@
+openapi: 3.1.0
+info:
+  title: Notifications service
+  version: 1.0.0
+  description: What customers were told. Part of the Shop.
+paths:
+  /events:
+    post:
+      summary: Records one notification per event id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, type, orderId]
+              properties:
+                id: { type: string }
+                type: { type: string, enum: [order.placed, order.paid, order.shipped, order.cancelled] }
+                orderId: { type: string }
+      responses:
+        '200': { description: The notification, the same one for an event id already seen }
+  /notifications:
+    get:
+      summary: What was told about an order
+      parameters:
+        - { name: orderId, in: query, required: true, schema: { type: string } }
+      responses:
+        '200': { description: The notifications of the order }

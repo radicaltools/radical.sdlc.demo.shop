@@ -1,0 +1,43 @@
+openapi: 3.1.0
+info:
+  title: Pricing service
+  version: 1.0.0
+  description: What a cart costs. Part of the Shop.
+paths:
+  /quote:
+    post:
+      summary: Prices a cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lines]
+              properties:
+                lines:
+                  type: array
+                  items:
+                    type: object
+                    required: [sku, unitPrice, quantity]
+                    properties:
+                      sku: { type: string }
+                      unitPrice: { type: number }
+                      quantity: { type: integer, minimum: 1 }
+                code: { type: string }
+      responses:
+        '200':
+          description: The price
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [subtotal, discount, vat, beforeShipping, shipping, total]
+                properties:
+                  subtotal: { type: number }
+                  discount: { type: number }
+                  vat: { type: number }
+                  beforeShipping: { type: number }
+                  shipping: { type: number }
+                  total: { type: number }
+        '400': { description: An unknown code or a quantity below one }

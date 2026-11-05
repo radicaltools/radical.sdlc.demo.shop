@@ -1,0 +1,119 @@
+{
+  "ci": { "artifacts": ["test-reports"] },
+  "implements": [
+    { "element": "d254177a-14c6-41df-8658-b5094e1828dd", "name": "Shop", "paths": ["services", "packages"] },
+    { "element": "36f59156-1f85-44e4-884f-00b6739e281b", "name": "Pricing service", "paths": ["services/pricing"] },
+    { "element": "d1a0f43b-00be-4c90-8730-e2923c73f475", "name": "Orders service", "paths": ["services/orders"] },
+    { "element": "7f3b8475-e9c8-457c-bfdb-75bcfb1f87be", "name": "Notifications service", "paths": ["services/notifications"] },
+    { "element": "80b286d3-fedc-4e07-9a40-e98943808c44", "name": "Contracts", "paths": ["packages/contracts"] }
+  ],
+  "verifies": [
+    { "element": "aae91a35-c933-41fb-8dec-f7acd34d489f", "name": "Cart priced with VAT", "tests": [
+      "services/pricing/test/quote.test.ts › quote › adds VAT to the subtotal",
+      "services/pricing/test/server.test.ts › pricing service › prices a cart over HTTP"
+    ] },
+    { "element": "b32d98fb-e879-4aef-ae71-7f6167735d55", "name": "Welcome code taken off", "tests": [
+      "services/pricing/test/quote.test.ts › quote › takes a discount code off before VAT",
+      "services/pricing/test/quote.test.ts › quote › caps a discount"
+    ] },
+    { "element": "cf48c5a2-6f48-42c9-a0af-02ab5a3d7592", "name": "Unknown code refused", "tests": [
+      "services/pricing/test/quote.test.ts › quote › refuses an unknown code",
+      "services/pricing/test/server.test.ts › pricing service › answers 400 to an unknown code"
+    ] },
+    { "element": "b9cc9f4c-a261-45bc-b252-c9cf56cc888f", "name": "Order placed at the quote", "tests": [
+      "services/orders/test/orders.test.ts › orders › places an order at the quoted total",
+      "services/orders/test/orders.test.ts › orders › refuses an empty cart"
+    ] },
+    { "element": "170d177c-7252-482c-90b8-c28a26f34c5f", "name": "Placed order cancelled", "tests": [
+      "services/orders/test/orders.test.ts › orders › cancels a placed order"
+    ] },
+    { "element": "f673e5bc-4bd9-4006-bfaa-a7dfe85c6873", "name": "Paid order shipped", "tests": [
+      "services/orders/test/orders.test.ts › orders › ships a paid order"
+    ] },
+    { "element": "65504c73-bf05-468d-9382-67bdd1660ea1", "name": "Paid order notified", "tests": [
+      "tests/stack.test.ts › stack › notifies a paid order",
+      "services/notifications/test/notifier.test.ts › notifier › records a notification for an event"
+    ] },
+    { "element": "53c505bd-75b9-4a4e-8c3f-e6a36d3a3d44", "name": "Repeated event ignored", "tests": [
+      "services/notifications/test/notifier.test.ts › notifier › ignores a repeated event"
+    ] },
+    { "element": "91171352-27d3-4040-bbe2-55d60a1870a9", "name": "Order refused without pricing", "tests": [
+      "services/orders/test/orders.test.ts › orders › refuses an order while pricing is down"
+    ] },
+    { "element": "8ecade18-03e6-454b-9f8d-08ac91e5e7f0", "name": "Unknown order answered 404", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers 404 to an unknown order"
+    ] },
+    { "element": "015b116c-7e8c-446f-953f-d893328cd759", "name": "Shipping charged under 100", "tests": [
+      "services/pricing/test/quote.test.ts › quote › charges shipping under 100"
+    ] },
+    { "element": "6b4eafe7-5fa3-4ea4-80e6-4efbda947da2", "name": "Shipping free from 100", "tests": [
+      "services/pricing/test/quote.test.ts › quote › ships free from 100"
+    ] },
+    { "element": "a16fa5d3-36f9-4cdf-9099-ec58a813eb75", "name": "Paid order kept", "tests": [
+      "services/orders/test/orders.test.ts › orders › keeps a paid order when cancelled"
+    ] },
+    { "element": "277e0306-6bd8-4de8-a590-3cb2182d1e36", "name": "Zero quantity refused", "tests": [
+      "services/pricing/test/quote.test.ts › quote › refuses a quantity below one"
+    ] },
+    { "element": "60fb4adb-396f-4c4c-8976-cf7ecb0c04a1", "name": "Bulk cart takes 10% off", "tests": [
+      "services/pricing/test/quote.test.ts › quote › takes 10% off a cart from 200 with VAT"
+    ] },
+    { "element": "ac4a6f17-5cb8-4f0a-9cb1-8ed1978c8020", "name": "Bulk cart at exactly 200", "tests": [
+      "services/pricing/test/quote.test.ts › quote › takes 10% off a cart at exactly 200 with VAT"
+    ] },
+    { "element": "5c8cc5e3-0b54-4fc3-a266-5ba8457e7f08", "name": "Cart just under 200", "tests": [
+      "services/pricing/test/quote.test.ts › quote › takes no discount off a cart just under 200 with VAT"
+    ] },
+    { "element": "2d7b1d9a-7074-4a0c-84c5-ec3c3022ea73", "name": "Code does not lower threshold", "tests": [
+      "services/pricing/test/quote.test.ts › quote › lets a code past the 200 threshold, and gives the largest of the code, 5% and 10%"
+    ] },
+    { "element": "74e88284-f74e-47bc-9ca3-b89a069b8e16", "name": "Code larger than bulk", "tests": [
+      "services/pricing/test/quote.test.ts › quote › gives a code when it is larger than 5% and 10%"
+    ] },
+    { "element": "fad13bd2-7fb9-4eb7-8a4d-6152ea0b70f1", "name": "Bulk larger than code", "tests": [
+      "services/pricing/test/quote.test.ts › quote › gives 10% when it is larger than a code"
+    ] },
+    { "element": "f76a6e77-fd61-451f-87f4-d2e9cee9cdf6", "name": "Paying holds the goods", "tests": [
+      "services/orders/test/orders.test.ts › orders › reserves the goods when an order is paid"
+    ] },
+    { "element": "a5b5f282-abfb-41e4-8a76-a5805cc98edf", "name": "Short mugs", "tests": [
+      "services/orders/test/orders.test.ts › orders › keeps the order placed when the goods are short"
+    ] },
+    { "element": "3ee0d091-73df-41ef-8ff3-5c579a066037", "name": "Warehouse does not answer", "tests": [
+      "services/orders/test/orders.test.ts › orders › keeps the order placed while the warehouse is down"
+    ] },
+    { "element": "b3fb9c07-9313-4f39-8bc1-43ec7adb2db7", "name": "Paid twice, held once", "tests": [
+      "services/orders/test/orders.test.ts › orders › reserves once when an order is paid again"
+    ] },
+    { "element": "4115276a-d7f4-49df-a93b-f80233bc6022", "name": "Tracking number kept", "tests": [
+      "services/orders/test/orders.test.ts › orders › keeps the tracking number of a shipped order"
+    ] },
+    { "element": "21a41fb5-2d1c-44bf-a679-63b61dc2e68d", "name": "Carrier down, order waits", "tests": [
+      "services/orders/test/orders.test.ts › orders › keeps the order paid while the carrier is down"
+    ] },
+    { "element": "482ea253-a6bc-42f8-8ef5-dbf52bbb569c", "name": "Paid at once, held once", "tests": [
+      "services/orders/test/orders.test.ts › orders › pays once when an order is paid twice at once"
+    ] },
+    { "element": "455590b4-e050-4ff5-b41f-6945cc53eeb7", "name": "Placed order return refused", "tests": [
+      "services/orders/test/orders.test.ts › orders › refuses the return of a placed order"
+    ] },
+    { "element": "cc84550a-ffa7-442a-8198-f52ab43e84bc", "name": "Return one second late refused", "tests": [
+      "services/orders/test/orders.test.ts › orders › refuses a return one second after day 14"
+    ] },
+    { "element": "4563af73-3fb0-45bf-892d-2aed7b8c1a38", "name": "Shipped order returned on day 14", "tests": [
+      "services/orders/test/orders.test.ts › orders › returns a shipped order on day 14"
+    ] },
+    { "element": "a29af2b5-2d98-4535-9ceb-4d21fc6ed918", "name": "Tracking of a shipped order", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers the tracking of a shipped order"
+    ] },
+    { "element": "7965a27e-3ed6-402a-916f-c3d83663513c", "name": "Carrier status unavailable", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers 503 to the tracking when the warehouse does not answer"
+    ] },
+    { "element": "63cdcb57-2994-4dcb-bca1-23d200a48c70", "name": "Carrier status 404 unavailable", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers 503 to the tracking when the warehouse answers 404 for the carrier status"
+    ] },
+    { "element": "e2e737e1-f4af-4d07-874b-e1776f80302c", "name": "Unshipped tracking refused", "tests": [
+      "services/orders/test/orders.test.ts › orders › refuses the tracking of an order not shipped"
+    ] }
+  ]
+}

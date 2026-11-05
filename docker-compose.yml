@@ -1,0 +1,53 @@
+# The shop on one machine, with the real Warehouse at the version deps.json pins (the deploy
+# sets WAREHOUSE_VERSION from it). TAG names the shop's images.
+x-service: &service
+  healthcheck:
+    test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+    interval: 3s
+    timeout: 3s
+    retries: 20
+
+services:
+  pricing:
+    <<: *service
+    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.shop/pricing:${TAG:-local}
+    build: { context: ., args: { SERVICE: pricing } }
+    ports: ["3001:3000"]
+  notifications:
+    <<: *service
+    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.shop/notifications:${TAG:-local}
+    build: { context: ., args: { SERVICE: notifications } }
+    ports: ["3003:3000"]
+  stock:
+    <<: *service
+    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.warehouse/stock:${WAREHOUSE_VERSION:-v1.0.0}
+    ports: ["3011:3000"]
+  carrier:
+    <<: *service
+    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.warehouse/dispatch:${WAREHOUSE_VERSION:-v1.0.0}
+    command: ["node", "/app/tools/carrier-stand-in.mjs"]
+  dispatch:
+    <<: *service
+    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.warehouse/dispatch:${WAREHOUSE_VERSION:-v1.0.0}
+    environment:
+      STOCK_URL: http://stock:3000
+      CARRIER_URL: http://carrier:3000
+    ports: ["3012:3000"]
+    depends_on:
+      stock: { condition: service_healthy }
+      carrier: { condition: service_healthy }
+  orders:
+    <<: *service
+    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.shop/orders:${TAG:-local}
+    build: { context: ., args: { SERVICE: orders } }
+    environment:
+      PRICING_URL: http://pricing:3000
+      NOTIFICATIONS_URL: http://notifications:3000
+      STOCK_URL: http://stock:3000
+      DISPATCH_URL: http://dispatch:3000
+    ports: ["3002:3000"]
+    depends_on:
+      pricing: { condition: service_healthy }
+      notifications: { condition: service_healthy }
+      stock: { condition: service_healthy }
+      dispatch: { condition: service_healthy }

@@ -1,0 +1,93 @@
+openapi: 3.1.0
+info:
+  title: Orders service
+  version: 1.0.0
+  description: Places orders and moves them through their lifecycle. Part of the Shop.
+paths:
+  /orders:
+    post:
+      summary: Places an order at the quoted total
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lines]
+              properties:
+                lines:
+                  type: array
+                  items:
+                    type: object
+                    required: [sku, unitPrice, quantity]
+                    properties:
+                      sku: { type: string }
+                      unitPrice: { type: number }
+                      quantity: { type: integer, minimum: 1 }
+                code: { type: string }
+      responses:
+        '201': { description: The placed order }
+        '400': { description: An empty cart, or one pricing refuses }
+        '503': { description: Pricing cannot be reached; nothing is kept }
+  /orders/{id}:
+    get:
+      summary: Reads an order
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: The order }
+        '404': { description: No such order }
+  /orders/{id}/pay:
+    post:
+      summary: Reserves the goods in the Warehouse and marks the order paid
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: The paid order, also for an order paid already }
+        '409': { description: The goods are short, or the order cannot be paid; it stays as it was }
+        '503': { description: The Warehouse cannot be reached; the order stays placed }
+  /orders/{id}/ship:
+    post:
+      summary: Has the Warehouse dispatch the goods and marks the order shipped
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: The shipped order, with its tracking number }
+        '409': { description: The order cannot be shipped }
+        '503': { description: The Warehouse or its carrier cannot do it now; the order stays paid }
+  /orders/{id}/return:
+    post:
+      summary: Takes a shipped order back within 14 days of shipping, and has the Warehouse put the goods back on its shelves
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: The returned order }
+        '409': { description: The order is not shipped, or was shipped more than 14 days before; it stays as it was }
+        '503': { description: The Warehouse cannot put the goods back now; the order stays shipped }
+  /orders/{id}/tracking:
+    get:
+      summary: Reads the tracking number of a shipped order and the carrier's status of its delivery, from the Warehouse; changes nothing
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: The tracking number and the carrier's status of the delivery
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [trackingNumber, status]
+                properties:
+                  trackingNumber: { type: string }
+                  status: { type: string, enum: [in-transit, delivered, lost] }
+        '404': { description: No such order }
+        '409': { description: The order has not shipped; the Warehouse is not asked }
+        '503': { description: The Warehouse cannot give the carrier status now; the order stays as it is }
+  /orders/{id}/cancel:
+    post:
+      summary: Cancels a placed order
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: The cancelled order }
+        '409': { description: The order cannot be cancelled }
