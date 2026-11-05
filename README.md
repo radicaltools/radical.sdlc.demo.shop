@@ -20,10 +20,6 @@ Each lane is who does the step. A red arrow is a refusal, and the order stays as
 `GET /orders/{id}/tracking` answers a shipped order's tracking number, the carrier's status and the estimated delivery
 date, all read from the Warehouse. The date is null when the carrier gave none.
 
-Tickets go to [the architecture repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#how-a-change-gets-through),
-never here. When this repository's part of the model is not built, the coding agent proposes the code in a pull
-request, and the Gate decides. When a change crosses both repositories, the Warehouse goes first, because this one calls it.
-
 Paying an order reserves its goods in the [Warehouse](https://github.com/radicaltools/radical.tools.sdlc.demo.3.warehouse)
 in the same request (ADR *Payment waits for stock*), and shipping it has the Warehouse book the carrier. Two things
 keep the two repositories honest with each other:
@@ -34,6 +30,16 @@ keep the two repositories honest with each other:
   a pull request whose call they do not describe.
 
 Tests and `npm run stack` use a stand-in for the Warehouse, so a pull request here does not need it running.
+
+## How a change gets here
+
+![A person opens a ticket. The model agent changes the model of the whole system in one pull request. A green Gate and a person's merge start the system loop, which reads what each repository has left and starts the Warehouse first, because the Shop calls it. Its coding agent builds its part, a green Gate and a merge start the loop again, and it starts the Shop. When nothing is left, the loop closes the ticket.](https://raw.githubusercontent.com/radicaltools/radical.tools.sdlc.demo.3.architecture/main/docs/sdlc.svg)
+
+Yellow is a person, violet an agent on Claude Code, and green has no AI and gives the same answer every time. The dark box is the Gate, the one required check.
+
+Tickets go to [the architecture repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#how-a-change-gets-through),
+never here. When this repository's part of the model is not built, the coding agent proposes the code in a pull
+request, and the Gate decides. When a change crosses both repositories, the Warehouse goes first, because this one calls it.
 
 ## Built from the model
 
