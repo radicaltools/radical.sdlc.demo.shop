@@ -28,8 +28,10 @@ keep the two repositories honest with each other:
   orders the work.
 - **The contract.** The sensor `warehouse-contract` reads the Warehouse's OpenAPI descriptions on its main branch and fails
   a pull request whose call they do not describe.
+- **The test of the two together.** The sensor `crosses` runs this repository's code with the Warehouse's main branch and
+  fails a pull request on a call or a field the two sides do not agree on. It starts everything itself.
 
-Tests and `npm run stack` use a stand-in for the Warehouse, so a pull request here does not need it running.
+The tests in `tests/` and `npm run stack` use a stand-in for the Warehouse.
 
 ## How a change gets here
 

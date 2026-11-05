@@ -6,6 +6,7 @@
     "fuzz": { "command": "node .standards/sensors/fuzz.mjs" },
     "quote-speed": { "command": "npx tsx .radical/sensors/quote-speed.ts" },
     "warehouse-contract": { "command": "npx tsx .radical/sensors/warehouse-contract.mjs" },
-    "smoke": { "command": "node .radical/sensors/smoke.mjs" }
+    "smoke": { "command": "node .radical/sensors/smoke.mjs" },
+    "crosses": { "command": "node .agent/system/pipeline/crosses.mjs" }
   }
 }
