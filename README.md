@@ -17,11 +17,13 @@ tools/model.mjs           fetches the model into .radical/model, out of git
 
 Each lane is who does the step. A red arrow is a refusal, and the order stays as it was.
 
-`GET /orders/{id}/tracking` answers a shipped order's tracking number, the carrier's status and the estimated delivery
-date, all read from the Warehouse. The date is null when the carrier gave none.
+An order is placed with a delivery address (street, city, postal code and a two-letter country, kept in uppercase), or
+refused with 400; shipping it passes the address to the Warehouse. `GET /orders/{id}/tracking` answers a shipped order's
+tracking number, the carrier's status, the estimated delivery date and, once delivered, the time of delivery, all read
+from the Warehouse, null where the carrier gave none.
 
 Paying an order reserves its goods in the [Warehouse](https://github.com/radicaltools/radical.sdlc.demo.warehouse)
-in the same request (ADR *Payment waits for stock*), and shipping it has the Warehouse book the carrier. Two things
+in the same request (ADR *Payment waits for stock*), and shipping it has the Warehouse book the carrier. Three things
 keep the two repositories honest with each other:
 
 - **The model.** One model holds both, with the relations from the orders service to the Warehouse's services, and it
@@ -49,9 +51,11 @@ loop merges every pull request of it.
 
 ## Built from the model
 
-[The pull request](https://github.com/radicaltools/radical.sdlc.demo.shop/pull/1) that added the estimated delivery date came from the coding agent, with no ticket here.
-The loop started it when the Warehouse's code was merged, so what it needed was already there. It read what changed in
-the model, built this repository's part, and left the Warehouse's part alone.
+[The pull request](https://github.com/radicaltools/radical.sdlc.demo.shop/pull/10) that takes the delivery address came
+from the coding agent, on the branch `change/22`, with no ticket here. The loop started it once the Warehouse had built
+its part on the same branch, so what it needed was there. It read what changed in the model, built this repository's
+part, and left the Warehouse's part alone. Its text shows the proof of its tests, and a person accepted it together with
+the model and the Warehouse's part.
 
 Open findings wait in `.radical/crucible/findings`:
 *a discount code named `constructor` is accepted*, *paying, shipping or cancelling an unknown order answers 500*, and more.
@@ -60,7 +64,7 @@ Open findings wait in `.radical/crucible/findings`:
 
 ```bash
 npm ci
-npm run standards        # .radical/model (this repository's part), .standards/, and the agents' skills
+npm run standards        # .radical/model (judged on this repository's part), .standards/, and the agents' skills
 npm test
 npm run stack            # the services on :3001 to :3003, with a stand-in for the Warehouse on :3011
 ```
