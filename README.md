@@ -1,7 +1,7 @@
-# radical.tools.sdlc.demo.3.shop
+# radical.sdlc.demo.shop
 
 The Shop, one of the repositories that build one system with one model. [The architecture
-repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#readme) holds the model
+repository](https://github.com/radicaltools/radical.sdlc.demo.architecture#readme) holds the model
 and says how it all fits together. This repository holds code, and two files about the model:
 
 ```
@@ -20,7 +20,7 @@ Each lane is who does the step. A red arrow is a refusal, and the order stays as
 `GET /orders/{id}/tracking` answers a shipped order's tracking number, the carrier's status and the estimated delivery
 date, all read from the Warehouse. The date is null when the carrier gave none.
 
-Paying an order reserves its goods in the [Warehouse](https://github.com/radicaltools/radical.tools.sdlc.demo.3.warehouse)
+Paying an order reserves its goods in the [Warehouse](https://github.com/radicaltools/radical.sdlc.demo.warehouse)
 in the same request (ADR *Payment waits for stock*), and shipping it has the Warehouse book the carrier. Two things
 keep the two repositories honest with each other:
 
@@ -36,11 +36,11 @@ The tests in `tests/` and `npm run stack` use a stand-in for the Warehouse.
 
 ## How a change gets here
 
-![A person opens a ticket. The model agent models the change of the whole system on a branch, says on the ticket what it understood, and a review agent reads the change against the ticket. After a green Gate the system loop starts the Warehouse first, because the Shop calls it, then the Shop, each building on the same branch. A coding agent's question goes to the model agent, who answers in the model, and the loop builds again. When every Gate is green, the evidence goes on the ticket, a person accepts it all at once, and the loop merges the model first, then the code.](https://raw.githubusercontent.com/radicaltools/radical.tools.sdlc.demo.3.architecture/main/docs/sdlc.svg)
+![A person opens a ticket. The model agent models the change of the whole system on a branch, says on the ticket what it understood, and a review agent reads the change against the ticket. After a green Gate the system loop starts the Warehouse first, because the Shop calls it, then the Shop, each building on the same branch. A coding agent's question goes to the model agent, who answers in the model, and the loop builds again. When every Gate is green, the evidence goes on the ticket, a person accepts it all at once, and the loop merges the model first, then the code.](https://raw.githubusercontent.com/radicaltools/radical.sdlc.demo.architecture/main/docs/sdlc.svg)
 
 Yellow is a person, violet an agent on Claude Code, and green has no AI and gives the same answer every time. The dark boxes are the Gates, the one required check of each repository.
 
-Tickets go to [the architecture repository](https://github.com/radicaltools/radical.tools.sdlc.demo.3.architecture#how-a-change-gets-through),
+Tickets go to [the architecture repository](https://github.com/radicaltools/radical.sdlc.demo.architecture#how-a-change-gets-through),
 never here. A change lives on the branch `change/<n>` of its ticket, in the architecture repository and in each
 repository it touches. When this repository's part of the model on that branch is not built, its coding agent builds
 it there, in a draft pull request with the proof of its tests, and the Gate decides. When a change crosses both
@@ -49,7 +49,7 @@ loop merges every pull request of it.
 
 ## Built from the model
 
-[The pull request](https://github.com/radicaltools/radical.tools.sdlc.demo.3.shop/pull/1) that added the estimated delivery date came from the coding agent, with no ticket here.
+[The pull request](https://github.com/radicaltools/radical.sdlc.demo.shop/pull/1) that added the estimated delivery date came from the coding agent, with no ticket here.
 The loop started it when the Warehouse's code was merged, so what it needed was already there. It read what changed in
 the model, built this repository's part, and left the Warehouse's part alone.
 

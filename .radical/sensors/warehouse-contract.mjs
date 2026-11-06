@@ -16,7 +16,7 @@ if (!element?.paths?.includes('services/orders')) {
   process.exit(0)
 }
 
-const WAREHOUSE = 'https://github.com/radicaltools/radical.tools.sdlc.demo.3.warehouse.git'
+const WAREHOUSE = 'https://github.com/radicaltools/radical.sdlc.demo.warehouse.git'
 const copy = mkdtempSync(join(tmpdir(), 'warehouse-'))
 try {
   execFileSync('git', ['clone', '-q', '--depth', '1', WAREHOUSE, copy], { stdio: 'inherit' })

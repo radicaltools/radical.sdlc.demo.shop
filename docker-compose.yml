@@ -10,25 +10,25 @@ x-service: &service
 services:
   pricing:
     <<: *service
-    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.shop/pricing:${TAG:-local}
+    image: ghcr.io/radicaltools/radical.sdlc.demo.shop/pricing:${TAG:-local}
     build: { context: ., args: { SERVICE: pricing } }
     ports: ["3001:3000"]
   notifications:
     <<: *service
-    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.shop/notifications:${TAG:-local}
+    image: ghcr.io/radicaltools/radical.sdlc.demo.shop/notifications:${TAG:-local}
     build: { context: ., args: { SERVICE: notifications } }
     ports: ["3003:3000"]
   stock:
     <<: *service
-    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.warehouse/stock:${WAREHOUSE_VERSION:-v1.0.0}
+    image: ghcr.io/radicaltools/radical.sdlc.demo.warehouse/stock:${WAREHOUSE_VERSION:-v1.0.0}
     ports: ["3011:3000"]
   carrier:
     <<: *service
-    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.warehouse/dispatch:${WAREHOUSE_VERSION:-v1.0.0}
+    image: ghcr.io/radicaltools/radical.sdlc.demo.warehouse/dispatch:${WAREHOUSE_VERSION:-v1.0.0}
     command: ["node", "/app/tools/carrier-stand-in.mjs"]
   dispatch:
     <<: *service
-    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.warehouse/dispatch:${WAREHOUSE_VERSION:-v1.0.0}
+    image: ghcr.io/radicaltools/radical.sdlc.demo.warehouse/dispatch:${WAREHOUSE_VERSION:-v1.0.0}
     environment:
       STOCK_URL: http://stock:3000
       CARRIER_URL: http://carrier:3000
@@ -38,7 +38,7 @@ services:
       carrier: { condition: service_healthy }
   orders:
     <<: *service
-    image: ghcr.io/radicaltools/radical.tools.sdlc.demo.3.shop/orders:${TAG:-local}
+    image: ghcr.io/radicaltools/radical.sdlc.demo.shop/orders:${TAG:-local}
     build: { context: ., args: { SERVICE: orders } }
     environment:
       PRICING_URL: http://pricing:3000
