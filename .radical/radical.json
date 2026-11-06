@@ -136,6 +136,9 @@
     ] },
     { "element": "10e1b070-2acb-47dc-81b4-05297e43fba5", "name": "Order with bad country refused", "tests": [
       "services/orders/test/orders.test.ts › orders › refuses an order whose country is not a two-letter code, and says so"
+    ] },
+    { "element": "3d8a8c3c-d7fe-4c7b-8537-1feebdf0ca59", "name": "Tracking out for delivery", "tests": [
+      "services/orders/test/orders.test.ts › orders › answers the tracking of a shipped order out for delivery"
     ] }
   ]
 }
