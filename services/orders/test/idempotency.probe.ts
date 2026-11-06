@@ -9,7 +9,7 @@ export const probes = [{
   async prepare() {
     let reserved = 0
     const book = new OrderBook()
-    const { id } = book.place([{ sku: 'mug', unitPrice: 20, quantity: 1 }], 34.59)
+    const { id } = book.place([{ sku: 'mug', unitPrice: 20, quantity: 1 }], 34.59, { street: 'Dluga 1', city: 'Warsaw', postalCode: '00-001', country: 'PL' })
     const app = buildServer({
       price: async () => { throw new Error('not asked') },
       notify: async () => {},

@@ -9,7 +9,7 @@
 
 import { fc, loadFindings, type FuzzSuite, type Known } from '@radicaltools/crucible'
 import { fuzzSuite } from '@radicaltools/crucible/vitest'
-import type { Line, OrderStatus } from '@shop/contracts'
+import type { DeliveryAddress, Line, OrderStatus } from '@shop/contracts'
 import { buildServer as notifications } from '../../services/notifications/src/server.js'
 import { Refused, buildServer as orders } from '../../services/orders/src/server.js'
 import { buildServer as pricing } from '../../services/pricing/src/server.js'
@@ -22,7 +22,7 @@ const MOVES = {
 
 type Move = keyof typeof MOVES
 type Action =
-  | { a: 'place'; lines: Line[]; code?: string }
+  | { a: 'place'; lines: Line[]; code?: string; deliveryAddress: DeliveryAddress }
   | { a: Move; which: number }
   | { a: 'read'; which: number }
 
@@ -31,8 +31,10 @@ const line: fc.Arbitrary<Line> = fc.record({
   unitPrice: fc.integer({ min: 1, max: 40000 }).map((cents) => cents / 100),
   quantity: fc.oneof(fc.integer({ min: 1, max: 9 }), fc.constantFrom(0, -1, undefined as unknown as number)),
 })
+// Every order carries an address, so the rules below are exercised past the address check.
+const deliveryAddress: DeliveryAddress = { street: 'Dluga 1', city: 'Warsaw', postalCode: '00-001', country: 'PL' }
 const actions: fc.Arbitrary<Action> = fc.oneof(
-  { weight: 2, arbitrary: fc.record({ a: fc.constant('place' as const), lines: fc.array(line, { maxLength: 4 }), code: fc.constantFrom('WELCOME10', 'LOYAL20', 'NOPE', 'constructor', 'toString', undefined) }) },
+  { weight: 2, arbitrary: fc.record({ a: fc.constant('place' as const), lines: fc.array(line, { maxLength: 4 }), code: fc.constantFrom('WELCOME10', 'LOYAL20', 'NOPE', 'constructor', 'toString', undefined), deliveryAddress: fc.constant(deliveryAddress) }) },
   { weight: 3, arbitrary: fc.record({ a: fc.constantFrom('pay' as const, 'ship' as const, 'cancel' as const), which: fc.integer({ min: -1, max: 5 }) }) },
   { weight: 1, arbitrary: fc.record({ a: fc.constant('read' as const), which: fc.integer({ min: -1, max: 5 }) }) },
 )
@@ -91,7 +93,7 @@ const suite: FuzzSuite<Action, null, Run> = {
       if (status >= 500) ctx.fail({ rule: 'noServerError', detail: `${what} answered ${status}` })
     }
     if (action.a === 'place') {
-      const response = await run.orders.inject({ method: 'POST', url: '/orders', payload: { lines: action.lines, code: action.code } })
+      const response = await run.orders.inject({ method: 'POST', url: '/orders', payload: { lines: action.lines, code: action.code, deliveryAddress: action.deliveryAddress } })
       ctx.trace.push(`place: ${response.statusCode}`)
       noServerError(response.statusCode, 'placing an order')
       if (response.statusCode === 201) {

@@ -5,7 +5,7 @@
 // the others.
 
 import Fastify, { type FastifyInstance } from 'fastify'
-import type { Line, Order, OrderEvent, OrderEventType, PlaceOrderRequest, Quote, ShortAnswer, Tracking } from '@shop/contracts'
+import type { DeliveryAddress, Line, Order, OrderEvent, OrderEventType, PlaceOrderRequest, Quote, ShortAnswer, Tracking } from '@shop/contracts'
 import { OrderBook, WrongMove } from './orderBook.js'
 
 export interface Neighbours {
@@ -14,9 +14,9 @@ export interface Neighbours {
   /** Holds the order's lines, with the order's id as the idempotency key, and
    *  answers with the reservation's id. Throws ShortGoods or WarehouseDown. */
   reserve(orderId: string, lines: Line[]): Promise<string>
-  /** Has the reservation dispatched and answers with the tracking number.
+  /** Has the reservation dispatched to the address and answers with the tracking number.
    *  Throws WarehouseDown, also when the carrier is down. */
-  dispatch(orderId: string, reservationId: string): Promise<string>
+  dispatch(orderId: string, reservationId: string, deliveryAddress: DeliveryAddress): Promise<string>
   /** Puts the goods of the reservation back on the shelves, with the order's id as the
    *  idempotency key. Throws WarehouseDown. */
   return(orderId: string, reservationId: string): Promise<void>
@@ -38,6 +38,15 @@ export class WarehouseDown extends Error {}
 
 /** A shipped order is taken back up to this long after it shipped, the day 14 included. */
 export const RETURN_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
+
+/** The address of an order, as the four fields the carrier needs; undefined when one is missing or malformed. */
+export function addressOf(value: unknown): DeliveryAddress | undefined {
+  if (typeof value !== 'object' || value === null) return undefined
+  const { street, city, postalCode, country } = value as Record<string, unknown>
+  const text = (field: unknown) => typeof field === 'string' && field.trim() !== ''
+  if (!text(street) || !text(city) || !text(postalCode) || typeof country !== 'string' || !/^[A-Z]{2}$/.test(country)) return undefined
+  return { street: street as string, city: city as string, postalCode: postalCode as string, country }
+}
 
 export function buildServer(neighbours: Neighbours, book = new OrderBook(), now: () => Date = () => new Date()): FastifyInstance {
   const app = Fastify()
@@ -76,6 +85,10 @@ export function buildServer(neighbours: Neighbours, book = new OrderBook(), now:
   app.post<{ Body: PlaceOrderRequest }>('/orders', async (request, reply) => {
     const { lines, code } = request.body
     if (!lines?.length) return reply.code(400).send({ error: 'An order needs at least one line' })
+    const deliveryAddress = addressOf(request.body.deliveryAddress)
+    if (!deliveryAddress) {
+      return reply.code(400).send({ error: 'An order needs a delivery address: street, city, postal code and a two-letter country code' })
+    }
     let quote: Quote
     try {
       quote = await neighbours.price(lines, code)
@@ -83,7 +96,7 @@ export function buildServer(neighbours: Neighbours, book = new OrderBook(), now:
       if (error instanceof Refused) return reply.code(400).send({ error: error.message })
       return reply.code(503).send({ error: 'Pricing is not available' })
     }
-    const order = book.place(lines, quote.total)
+    const order = book.place(lines, quote.total, deliveryAddress)
     await report(order.id, 'order.placed')
     return reply.code(201).send(order)
   })
@@ -128,7 +141,7 @@ export function buildServer(neighbours: Neighbours, book = new OrderBook(), now:
     const { id } = request.params
     try {
       const order = book.check(id, 'shipped')
-      const trackingNumber = await neighbours.dispatch(id, order.reservationId!)
+      const trackingNumber = await neighbours.dispatch(id, order.reservationId!, order.deliveryAddress)
       const shipped = book.move(id, 'shipped', { trackingNumber, shippedAt: now().toISOString() })
       await report(id, 'order.shipped')
       return shipped

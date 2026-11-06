@@ -8,12 +8,15 @@ export interface QuoteRequest { lines: Line[]; code?: string }
 /** `beforeShipping` is the price before the shipping fee; `total` adds `shipping`. */
 export interface Quote { subtotal: number; discount: number; vat: number; beforeShipping: number; shipping: number; total: number }
 
+/** The address the parcel goes to: the country a two-letter code such as PL. */
+export interface DeliveryAddress { street: string; city: string; postalCode: string; country: string }
+
 export type OrderStatus = 'placed' | 'paid' | 'shipped' | 'cancelled' | 'returned'
 /** `reservationId` once paid, `trackingNumber` once shipped: both from the Warehouse. `shippedAt` (ISO time) once shipped. */
-export interface Order { id: string; lines: Line[]; total: number; status: OrderStatus; reservationId?: string; trackingNumber?: string; shippedAt?: string }
+export interface Order { id: string; lines: Line[]; total: number; status: OrderStatus; deliveryAddress: DeliveryAddress; reservationId?: string; trackingNumber?: string; shippedAt?: string }
 
-/** POST /orders on the orders service. */
-export interface PlaceOrderRequest { lines: Line[]; code?: string }
+/** POST /orders on the orders service. The orders service refuses a request without a deliveryAddress. */
+export interface PlaceOrderRequest { lines: Line[]; code?: string; deliveryAddress?: DeliveryAddress }
 
 export type OrderEventType = 'order.placed' | 'order.paid' | 'order.shipped' | 'order.cancelled'
 /** POST /events on the notifications service. `id` is unique per event. */
