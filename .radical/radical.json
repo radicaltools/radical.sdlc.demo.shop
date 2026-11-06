@@ -130,6 +130,12 @@
     ] },
     { "element": "780455aa-278a-4eae-b94d-0b01a772600d", "name": "Order without address refused", "tests": [
       "services/orders/test/orders.test.ts › orders › refuses an order without a delivery address"
+    ] },
+    { "element": "b9d9a6a4-1431-4246-b0db-502ba5f90903", "name": "Lowercase country kept uppercase", "tests": [
+      "services/orders/test/orders.test.ts › orders › keeps the country of an order in uppercase"
+    ] },
+    { "element": "10e1b070-2acb-47dc-81b4-05297e43fba5", "name": "Order with bad country refused", "tests": [
+      "services/orders/test/orders.test.ts › orders › refuses an order whose country is not a two-letter code, and says so"
     ] }
   ]
 }

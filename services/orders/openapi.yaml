@@ -23,7 +23,7 @@ paths:
                     street: { type: string }
                     city: { type: string }
                     postalCode: { type: string }
-                    country: { type: string, pattern: '^[A-Z]{2}$', description: "A two-letter country code, such as PL" }
+                    country: { type: string, pattern: '^[A-Za-z]{2}$', description: "A two-letter country code, such as PL; kept in uppercase whatever its case" }
                 lines:
                   type: array
                   items:

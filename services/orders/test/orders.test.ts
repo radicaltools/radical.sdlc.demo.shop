@@ -52,6 +52,19 @@ describe('orders', () => {
     }
     expect(book.size).toBe(0)
   })
+  it('keeps the country of an order in uppercase', async () => {
+    const { post } = shop()
+    const response = await post('/orders', { lines, deliveryAddress: { ...address, country: 'pl' } })
+    expect(response.statusCode).toBe(201)
+    expect(response.json().deliveryAddress).toEqual(address)
+  })
+  it('refuses an order whose country is not a two-letter code, and says so', async () => {
+    const { post, book } = shop()
+    const response = await post('/orders', { lines, deliveryAddress: { ...address, country: 'POL' } })
+    expect(response.statusCode).toBe(400)
+    expect(response.json().error).toMatch(/two-letter code/)
+    expect(book.size).toBe(0)
+  })
   it('shows the delivery address of an order', async () => {
     const { app, post } = shop()
     const id = (await post('/orders', { lines, deliveryAddress: address })).json().id as string
