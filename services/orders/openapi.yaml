@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Orders service
-  version: 1.0.0
+  version: 2.0.0
   description: Places orders and moves them through their lifecycle. Part of the Shop.
 paths:
   /orders:
@@ -13,8 +13,17 @@ paths:
           application/json:
             schema:
               type: object
-              required: [lines]
+              required: [lines, deliveryAddress]
               properties:
+                deliveryAddress:
+                  type: object
+                  description: "The address the order goes to; the Warehouse books the carrier with it when the order ships"
+                  required: [street, city, postalCode, country]
+                  properties:
+                    street: { type: string }
+                    city: { type: string }
+                    postalCode: { type: string }
+                    country: { type: string, pattern: '^[A-Za-z]{2}$', description: "A two-letter country code, such as PL; kept in uppercase whatever its case" }
                 lines:
                   type: array
                   items:
@@ -27,7 +36,7 @@ paths:
                 code: { type: string }
       responses:
         '201': { description: The placed order }
-        '400': { description: An empty cart, or one pricing refuses }
+        '400': { description: An empty cart, a cart pricing refuses, or an order without a complete delivery address; no order is stored }
         '503': { description: Pricing cannot be reached; nothing is kept }
   /orders/{id}:
     get:
@@ -35,7 +44,7 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string } }
       responses:
-        '200': { description: The order }
+        '200': { description: The order, with its delivery address }
         '404': { description: No such order }
   /orders/{id}/pay:
     post:

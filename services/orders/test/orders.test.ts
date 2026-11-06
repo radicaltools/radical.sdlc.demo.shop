@@ -9,6 +9,7 @@ const closing: { close(): Promise<unknown> }[] = []
 afterAll(() => Promise.all(closing.map((app) => app.close())))
 
 const lines = [{ sku: 'mug', unitPrice: 20, quantity: 1 }]
+const address = { street: 'Dluga 1', city: 'Warsaw', postalCode: '00-001', country: 'PL' }
 const quote = { subtotal: 20, discount: 0, vat: 4.6, beforeShipping: 24.6, shipping: 9.99, total: 34.59 }
 
 function shop(overrides: Partial<Neighbours> = {}) {
@@ -27,21 +28,49 @@ function shop(overrides: Partial<Neighbours> = {}) {
     ...overrides,
   }, book, () => clock.now)
   const post = (url: string, payload?: object) => app.inject({ method: 'POST', url, payload })
-  return { app, book, events, reservations, returns, clock, post, placed: async () => (await post('/orders', { lines })).json().id as string }
+  return { app, book, events, reservations, returns, clock, post, placed: async () => (await post('/orders', { lines, deliveryAddress: address })).json().id as string }
 }
 
 describe('orders', () => {
   it('places an order at the quoted total', async () => {
-    const response = await shop().post('/orders', { lines })
+    const response = await shop().post('/orders', { lines, deliveryAddress: address })
     expect(response.statusCode).toBe(201)
-    expect(response.json()).toMatchObject({ status: 'placed', total: 34.59 })
+    expect(response.json()).toMatchObject({ status: 'placed', total: 34.59, deliveryAddress: address })
   })
   it('refuses an empty cart', async () => {
-    expect((await shop().post('/orders', { lines: [] })).statusCode).toBe(400)
+    expect((await shop().post('/orders', { lines: [], deliveryAddress: address })).statusCode).toBe(400)
   })
   it('refuses a cart pricing refuses', async () => {
     const { post } = shop({ price: async () => { throw new Refused('Unknown discount code NOPE') } })
-    expect((await post('/orders', { lines, code: 'NOPE' })).statusCode).toBe(400)
+    expect((await post('/orders', { lines, code: 'NOPE', deliveryAddress: address })).statusCode).toBe(400)
+  })
+  it('refuses an order without a delivery address', async () => {
+    const { post, book } = shop()
+    const missing = [undefined, { ...address, country: 'Poland' }, { ...address, street: '' }, { street: 'Dluga 1', city: 'Warsaw', postalCode: '00-001' }]
+    for (const deliveryAddress of missing) {
+      expect((await post('/orders', { lines, deliveryAddress })).statusCode).toBe(400)
+    }
+    expect(book.size).toBe(0)
+  })
+  it('keeps the country of an order in uppercase', async () => {
+    const { post } = shop()
+    const response = await post('/orders', { lines, deliveryAddress: { ...address, country: 'pl' } })
+    expect(response.statusCode).toBe(201)
+    expect(response.json().deliveryAddress).toEqual(address)
+  })
+  it('refuses an order whose country is not a two-letter code, and says so', async () => {
+    const { post, book } = shop()
+    const response = await post('/orders', { lines, deliveryAddress: { ...address, country: 'POL' } })
+    expect(response.statusCode).toBe(400)
+    expect(response.json().error).toMatch(/two-letter code/)
+    expect(book.size).toBe(0)
+  })
+  it('shows the delivery address of an order', async () => {
+    const { app, post } = shop()
+    const id = (await post('/orders', { lines, deliveryAddress: address })).json().id as string
+    const response = await app.inject({ method: 'GET', url: `/orders/${id}` })
+    expect(response.statusCode).toBe(200)
+    expect(response.json().deliveryAddress).toEqual({ street: 'Dluga 1', city: 'Warsaw', postalCode: '00-001', country: 'PL' })
   })
   it('ships a paid order', async () => {
     const { post, placed } = shop()
@@ -52,7 +81,7 @@ describe('orders', () => {
   it('returns a shipped order on day 14', async () => {
     const grinders = [{ sku: 'grinder', unitPrice: 50, quantity: 2 }]
     const { post, returns, clock, book } = shop()
-    const id = (await post('/orders', { lines: grinders })).json().id as string
+    const id = (await post('/orders', { lines: grinders, deliveryAddress: address })).json().id as string
     await post(`/orders/${id}/pay`)
     await post(`/orders/${id}/ship`)
     clock.now = new Date('2026-11-15T10:00:00Z')
@@ -65,7 +94,7 @@ describe('orders', () => {
   it('refuses a return one second after day 14', async () => {
     const grinders = [{ sku: 'grinder', unitPrice: 50, quantity: 2 }]
     const { post, returns, clock, book } = shop()
-    const id = (await post('/orders', { lines: grinders })).json().id as string
+    const id = (await post('/orders', { lines: grinders, deliveryAddress: address })).json().id as string
     await post(`/orders/${id}/pay`)
     await post(`/orders/${id}/ship`)
     clock.now = new Date('2026-11-15T10:00:01Z')
@@ -101,7 +130,7 @@ describe('orders', () => {
   })
   it('refuses an order while pricing is down', async () => {
     const { post, book } = shop({ price: async () => { throw new Error('connection refused') } })
-    expect((await post('/orders', { lines })).statusCode).toBe(503)
+    expect((await post('/orders', { lines, deliveryAddress: address })).statusCode).toBe(503)
     expect(book.size).toBe(0)
   })
   it('answers 404 to an unknown order', async () => {
@@ -110,7 +139,7 @@ describe('orders', () => {
   })
   it('keeps the order when a notification cannot be sent', async () => {
     const { post } = shop({ notify: async () => { throw new Error('connection refused') } })
-    expect((await post('/orders', { lines })).statusCode).toBe(201)
+    expect((await post('/orders', { lines, deliveryAddress: address })).statusCode).toBe(201)
   })
   it('reserves the goods when an order is paid', async () => {
     const { post, reservations, placed } = shop()
@@ -162,10 +191,12 @@ describe('orders', () => {
     expect(events.filter((e) => e.type === 'order.paid')).toHaveLength(1)
   })
   it('keeps the tracking number of a shipped order', async () => {
-    const { post, placed } = shop({ dispatch: async () => 'T-42' })
+    const dispatched: { reservationId: string; deliveryAddress: unknown }[] = []
+    const { post, placed } = shop({ dispatch: async (_id, reservationId, deliveryAddress) => { dispatched.push({ reservationId, deliveryAddress }); return 'T-42' } })
     const id = await placed()
     await post(`/orders/${id}/pay`)
     expect((await post(`/orders/${id}/ship`)).json()).toMatchObject({ status: 'shipped', trackingNumber: 'T-42' })
+    expect(dispatched).toEqual([{ reservationId: 'r-1', deliveryAddress: address }])
   })
   it('keeps the order paid while the carrier is down', async () => {
     let carrierUp = false

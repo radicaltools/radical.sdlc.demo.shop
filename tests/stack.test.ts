@@ -34,7 +34,8 @@ afterAll(() => Promise.all(apps.map((a) => a.close())))
 
 describe('stack', () => {
   it('notifies a paid order', async () => {
-    const order = await (await post(`${ordersUrl}/orders`, { lines: [{ sku: 'mug', unitPrice: 20, quantity: 1 }] })).json() as { id: string; total: number }
+    const deliveryAddress = { street: 'Dluga 1', city: 'Warsaw', postalCode: '00-001', country: 'PL' }
+    const order = await (await post(`${ordersUrl}/orders`, { lines: [{ sku: 'mug', unitPrice: 20, quantity: 1 }], deliveryAddress })).json() as { id: string; total: number }
     expect(order.total).toBe(34.59)
     await post(`${ordersUrl}/orders/${order.id}/pay`)
     const notes = await (await fetch(`${notificationsUrl}/notifications?orderId=${order.id}`)).json() as { eventId: string }[]

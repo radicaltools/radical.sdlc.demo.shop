@@ -1,7 +1,7 @@
 // The orders of the shop and their lifecycle: placed → paid → shipped → returned, or
 // placed → cancelled.
 
-import type { Line, Order, OrderStatus } from '@shop/contracts'
+import type { DeliveryAddress, Line, Order, OrderStatus } from '@shop/contracts'
 
 const MOVES: Record<OrderStatus, OrderStatus[]> = {
   placed: ['paid', 'cancelled'],
@@ -17,8 +17,8 @@ export class OrderBook {
   private orders = new Map<string, Order>()
   private next = 1
 
-  place(lines: Line[], total: number): Order {
-    const order: Order = { id: `o-${this.next++}`, lines, total, status: 'placed' }
+  place(lines: Line[], total: number, deliveryAddress: DeliveryAddress): Order {
+    const order: Order = { id: `o-${this.next++}`, lines, total, status: 'placed', deliveryAddress }
     this.orders.set(order.id, order)
     return order
   }

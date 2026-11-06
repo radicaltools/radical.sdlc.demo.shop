@@ -58,8 +58,8 @@ export function neighboursAt(urls: Urls): Neighbours {
       const response = await write(`${urls.stock}${path}`, orderId, {})
       if (!response.ok) throw new WarehouseDown(`Stock answered ${response.status}`)
     },
-    async dispatch(orderId, reservationId) {
-      const response = await write(`${urls.dispatch}${WAREHOUSE_CALLS.dispatch.path}`, orderId, { reservationId })
+    async dispatch(orderId, reservationId, deliveryAddress) {
+      const response = await write(`${urls.dispatch}${WAREHOUSE_CALLS.dispatch.path}`, orderId, { reservationId, deliveryAddress })
       if (!response.ok) throw new WarehouseDown(`Dispatch answered ${response.status}`)
       return ((await response.json()) as { trackingNumber: string }).trackingNumber
     },
