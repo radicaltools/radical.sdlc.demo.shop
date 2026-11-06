@@ -219,6 +219,17 @@ describe('orders', () => {
     expect(response.json()).toEqual({ trackingNumber: 'TRK-7', status: 'in-transit', estimatedDeliveryDate: '2026-11-20', deliveredAt: null })
     expect(book.get(id)?.status).toBe('shipped')
   })
+  it('answers the tracking of a shipped order out for delivery', async () => {
+    const carrierStatus = async () => ({ trackingNumber: 'TRK-11', status: 'out-for-delivery' as const, estimatedDeliveryDate: '2026-11-20', deliveredAt: null })
+    const { app, post, book, placed } = shop({ dispatch: async () => 'TRK-11', carrierStatus })
+    const id = await placed()
+    await post(`/orders/${id}/pay`)
+    await post(`/orders/${id}/ship`)
+    const response = await app.inject({ method: 'GET', url: `/orders/${id}/tracking` })
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({ trackingNumber: 'TRK-11', status: 'out-for-delivery', estimatedDeliveryDate: '2026-11-20', deliveredAt: null })
+    expect(book.get(id)?.status).toBe('shipped')
+  })
   it('answers the tracking of a shipped order without a date', async () => {
     const carrierStatus = async () => ({ trackingNumber: 'TRK-8', status: 'in-transit' as const, estimatedDeliveryDate: null, deliveredAt: null })
     const { app, post, book, placed } = shop({ dispatch: async () => 'TRK-8', carrierStatus })
